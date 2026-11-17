@@ -1,422 +1,1053 @@
----
-layout: default
----
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#164A2C">
+<title>İnci Ticaret — Sipariş, Stok, Cari & Kasa Otomasyonu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --surface-2:#F8FAF8; --ink:#111B15; --muted:#5C6B62; --line:#E1E7E2;
+  --green:#165B33; --green-dark:#0F4224; --green-ink:#FFFFFF; --green-soft:#E6F2EB;
+  --gold:#D99B16; --gold-soft:#FEF5DC; --gold-ink:#6B4A00;
+  --red:#C83A2B; --red-soft:#FDECEB;
+  --blue:#1D5FA7; --blue-soft:#E8F1FB;
+  --radius:16px; --radius-sm:12px;
+  --shadow:0 4px 16px rgba(17,27,21,.06);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.45 "Plus Jakarta Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.02em}
+.num{font-weight:800;font-variant-numeric:tabular-nums}
 
+/* ÜST BAR */
+.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-dark));display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem}
+.status-dot{width:9px;height:9px;border-radius:50%;background:#22C55E;display:inline-block;margin-right:4px}
 
-<div class="heading" id="toc">
-  <h2>İçindekiler</h2>
+/* ALT NAVİGASYON */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:10px;font-size:.62rem;font-weight:700;color:var(--muted);text-decoration:none;text-align:center}
+.nav a[aria-current="page"]{color:var(--green);background:var(--green-soft)}
+.nav svg{width:20px;height:20px}
+
+main{max-width:1080px;margin:0 auto;padding:16px 16px 120px}
+.view[hidden]{display:none !important}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+
+/* FORM ELEMANLARI */
+.field{display:grid;gap:5px;margin-bottom:12px}
+.field label{font-size:.82rem;font-weight:700;color:var(--muted)}
+.field input, .field select, .field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);font-weight:600;transition:border-color .15s}
+.field input:focus, .field select:focus{outline:none;border-color:var(--green);background:#fff}
+
+/* DİKEY SEÇİM LİSTELERİ (MÜŞTERİ & ÜRÜN) */
+.v-list-box{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);display:flex;flex-direction:column}
+.v-list-item{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;background:transparent;border-left:none;border-right:none;border-top:none;width:100%}
+.v-list-item:last-child{border-bottom:none}
+.v-list-item:hover, .v-list-item.active{background:var(--green-soft);color:var(--green);font-weight:700}
+
+/* BUTONLAR & ETİKETLER */
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 14px;font-weight:700;font-size:.86rem;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.danger{color:var(--red);background:var(--red-soft);border-color:transparent}
+.btn.secondary{background:var(--green-soft);color:var(--green);border-color:transparent}
+.btn.gold{background:var(--gold-soft);color:var(--gold-ink);border-color:transparent}
+.btn.blue{background:var(--blue-soft);color:var(--blue);border-color:transparent}
+.btn.sm{min-height:34px;padding:6px 10px;font-size:.78rem;border-radius:8px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+/* KATEGORİ SEKMELERİ */
+.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
+.cat-tab{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--surface);font-size:.8rem;font-weight:700;white-space:nowrap;color:var(--muted)}
+.cat-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* KASA KARTLARI */
+.k-card{background:var(--surface);border:1px solid var(--line);padding:14px 10px;border-radius:var(--radius-sm);text-align:center}
+.k-card small{font-size:.75rem;color:var(--muted);font-weight:700}
+.k-card .num{font-size:1.15rem;display:block;margin-top:4px}
+
+/* LİSTELER & ROZETLER */
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;justify-content:space-between;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line);gap:10px}
+.plist li:last-child{border-bottom:none}
+.badge{padding:4px 8px;border-radius:6px;font-size:.73rem;font-weight:800;display:inline-block}
+.badge.bekliyor{background:var(--gold-soft);color:var(--gold-ink)}
+.badge.tamam{background:var(--green-soft);color:var(--green)}
+.badge.vadeli{background:var(--blue-soft);color:var(--blue)}
+.badge.iade{background:var(--red-soft);color:var(--red)}
+
+/* BEKLEYEN YÜK AÇ/KAPA PANELİ */
+.load-panel{background:var(--green-soft);border:1px solid #C2DFCE;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.load-header{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:none;padding:0;color:var(--green-dark);font-weight:800;font-size:.95rem}
+
+/* MODAL (BEYAZ FİŞ & HIZLI MÜŞTERİ) */
+.modal-backdrop{position:fixed;inset:0;background:rgba(17,27,21,.6);z-index:100;display:grid;place-items:center;padding:16px}
+.modal-backdrop[hidden]{display:none !important}
+.modal-box{background:#fff;border-radius:var(--radius);max-width:460px;width:100%;padding:20px;box-shadow:0 20px 40px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.fis-paper{background:#FAFAFA;border:1px dashed #999;padding:16px;border-radius:8px;font-family:monospace;font-size:.85rem;color:#111}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="brand-badge">İT</div>
+      <div>
+        <h1 style="font-size:1.1rem">İnci Ticaret</h1>
+        <small style="color:var(--muted);font-weight:600"><span class="status-dot"></span>Balıkesir / İvrindi Canlı Sistem</small>
+      </div>
+    </div>
+    <button class="btn sm secondary" id="btn-open-quick-cust">+ Yeni Müşteri</button>
+  </div>
+</header>
+
+<main>
+  <!-- =========================================================
+       1. SİPARİŞ YÖNETİMİ & BEKLEYEN YÜK EKRANI
+       ========================================================= -->
+  <section class="view" id="v-siparisler">
+    <!-- Açılır/Kapanır Bekleyen Yük Özeti -->
+    <div class="load-panel">
+      <button type="button" class="load-header" id="toggle-load-btn">
+        <span>🚚 Araca Yüklenecek Toplam Bekleyen Yük (<span id="total-load-count">0</span> Çuval)</span>
+        <span id="toggle-load-icon" style="background:#fff;padding:4px 10px;border-radius:8px;font-size:.78rem">Göster ▼</span>
+      </button>
+      <div id="load-panel-body" hidden style="margin-top:12px;border-top:1px solid #C2DFCE;padding-top:10px">
+        <ul class="plist" id="bekleyen-yuk-list"><li>Hesaplanıyor...</li></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2 style="font-size:1.05rem;color:var(--green)">📋 Yeni Sipariş Oluştur</h2>
+        <button type="button" class="btn sm gold" id="btn-inline-new-cust">+ Hızlı Müşteri Ekle</button>
+      </div>
+
+      <!-- Müşteri Seçimi (Dikey Liste Formatında) -->
+      <div class="field">
+        <label>1. Kayıtlı Müşteri Seçin (Zorunlu Doğrulama)</label>
+        <input type="text" id="ord-cust-search" placeholder="Müşteri adı veya mahalle ara...">
+        <div class="v-list-box" id="ord-cust-list"></div>
+        <input type="hidden" id="ord-selected-cust-id">
+        <div id="ord-selected-cust-badge" style="font-size:.82rem;color:var(--green);font-weight:700;margin-top:4px"></div>
+      </div>
+
+      <!-- Ürün Kategorileri -->
+      <div class="field">
+        <label>2. Ürün Kategorisi Seçin</label>
+        <div class="cat-tabs" id="ord-cat-tabs">
+          <button type="button" class="cat-tab active" data-cat="Tümü">Tümü</button>
+          <button type="button" class="cat-tab" data-cat="Süt Yemi">Süt Yemi</button>
+          <button type="button" class="cat-tab" data-cat="Besi Yemi">Besi Yemi</button>
+          <button type="button" class="cat-tab" data-cat="Küçükbaş Yemleri">Küçükbaş Yemleri</button>
+          <button type="button" class="cat-tab" data-cat="Hammaddeler">Hammaddeler</button>
+        </div>
+
+        <!-- Dikey Ürün Seçim Listesi -->
+        <label>3. Ürün Seçin (Alt Alta Liste)</label>
+        <div class="v-list-box" id="ord-prod-list"></div>
+      </div>
+
+      <!-- Sepete Ekleme Satırı -->
+      <div class="grid3" style="align-items:end;background:var(--surface-2);padding:10px;border-radius:12px;border:1px solid var(--line)">
+        <div class="field" style="margin:0"><label>Seçili Ürün</label><input id="sel-prod-name" readonly placeholder="Listeden seçin"></div>
+        <div class="field" style="margin:0"><label>Adet / Çuval</label><input id="sel-prod-qty" type="number" min="1" value="1"></div>
+        <div class="field" style="margin:0"><label>Birim Fiyat (₺)</label><input id="sel-prod-price" type="number" step="any" placeholder="0.00"></div>
+      </div>
+      <button type="button" class="btn secondary" id="btn-add-to-cart" style="width:100%;margin-top:8px">+ Ürünü Sipariş Sepetine Ekle</button>
+
+      <!-- Sipariş Sepeti Özeti -->
+      <div id="ord-cart-area" hidden style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px">
+        <h4 style="margin-bottom:8px;font-size:.9rem">🛒 Sipariş Sepeti</h4>
+        <ul class="plist" id="ord-cart-list"></ul>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--green-soft);border-radius:10px;margin:10px 0">
+          <span style="font-weight:700;color:var(--green-dark)">Sepet Toplamı:</span>
+          <b class="num" id="ord-cart-total" style="font-size:1.15rem;color:var(--green)">0,00 ₺</b>
+        </div>
+        <div class="grid2">
+          <div class="field" style="margin:0">
+            <label>Ödeme Türü</label>
+            <select id="ord-pay-type">
+              <option value="Vadeli">Vadeli / Kağıtlı (Cariye İşler)</option>
+              <option value="Peşin">Peşin (Teslimatta Nakit)</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0">
+            <label>Sipariş Notu</label>
+            <input id="ord-note" placeholder="Örn: Sabah erken inecek">
+          </div>
+        </div>
+        <button type="button" class="btn primary" id="btn-save-order" style="width:100%;margin-top:12px">✓ Siparişi Onayla ve Kaydet</button>
+      </div>
+    </div>
+
+    <!-- Aktif Siparişler Listesi & Mahalle Filtresi -->
+    <div class="card">
+      <div class="card-head">
+        <h3 style="font-size:1rem">🚚 Dağıtım & Aktif Siparişler</h3>
+        <select id="filter-ord-status" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-size:.8rem;font-weight:700">
+          <option value="Bekliyor">Bekleyenler</option>
+          <option value="Tamamlandı">Teslim Edilenler</option>
+          <option value="Tümü">Tümü</option>
+        </select>
+      </div>
+      <ul class="plist" id="ord-list"><li>Yükleniyor...</li></ul>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       2. PEŞİN SATIŞ, GÜNLÜK KASA VE GİDER KALEMLERİ
+       ========================================================= -->
+  <section class="view" id="v-pesin" hidden>
+    <div class="grid3" style="margin-bottom:14px">
+      <div class="k-card"><small>Sabah Devir</small><b class="num" id="k-devir">0,00 ₺</b></div>
+      <div class="k-card"><small>Bugün Giren</small><b class="num" id="k-giren" style="color:var(--green)">0,00 ₺</b></div>
+      <div class="k-card"><small>Kasadaki Net</small><b class="num" id="k-kalan" style="color:var(--green)">0,00 ₺</b></div>
+    </div>
+
+    <!-- Hızlı Peşin Satış (Otomatik Kasaya ve Stoğa İşler) -->
+    <div class="card">
+      <h3 style="color:var(--green);margin-bottom:12px">💵 Hızlı Peşin Satış (Kasaya İşler & Stoktan Düşer)</h3>
+      <div class="field">
+        <label>Müşteri Seç (Kayıtlı)</label>
+        <select id="cs-cust"></select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Ürün Seç</label>
+          <select id="cs-prod"></select>
+        </div>
+        <div class="field">
+          <label>Adet / Çuval</label>
+          <input id="cs-qty" type="number" min="1" value="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Tahsil Edilen Nakit Tutar (₺)</label>
+        <input id="cs-amount" type="number" step="any" placeholder="0.00">
+      </div>
+      <button type="button" class="btn primary" id="cs-btn" style="width:100%">✓ Peşin Satışı Tamamla & Kasaya Ekle</button>
+    </div>
+
+    <!-- Gider Kalemleri ve Diğer Gider Açıklaması -->
+    <div class="card">
+      <h3 style="color:var(--red);margin-bottom:12px">💸 Kasa Gideri / Ödeme Çıkışı</h3>
+      <div class="field">
+        <label>Gider Kalemi Seçin</label>
+        <select id="tx-expense-cat">
+          <option value="Yevmiye">Yevmiye</option>
+          <option value="Avans">Avans</option>
+          <option value="Kira">Kira</option>
+          <option value="Bankaya Para Yatırma">Bankaya Para Yatırma</option>
+          <option value="Diğer Giderler">Diğer Giderler</option>
+        </select>
+      </div>
+      <div class="field" id="tx-other-note-wrap" hidden>
+        <label>Diğer Gider Açıklaması / Notu (Zorunlu)</label>
+        <input id="tx-other-note" placeholder="Örn: Mazot alındı, araç tamiri, yemek vb.">
+      </div>
+      <div class="field">
+        <label>Çıkan Tutar (₺)</label>
+        <input id="tx-amount" type="number" step="any" placeholder="0.00">
+      </div>
+      <button type="button" class="btn danger" id="tx-gider-btn" style="width:100%">− Kasadan Gider Olarak Düş</button>
+    </div>
+
+    <div class="card">
+      <h3>📜 Günlük Kasa Hareketleri Defteri</h3>
+      <ul class="plist" id="tx-list"><li>Hareket yükleniyor...</li></ul>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       3. DEPO STOK YÖNETİMİ & ÜRÜN İADE / DEĞİŞİM
+       ========================================================= -->
+  <section class="view" id="v-stok" hidden>
+    <!-- Ürün İade / Değişim Takibi -->
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3 style="color:var(--red);margin-bottom:8px">🔄 Dağıtım Ürün İade / Değişim Girişi</h3>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Dağıtımda geri dönen ürünler stoklara geri eklenir, ancak kasa ve peşin satış bakiyesini etkilemez.</p>
+      <div class="field">
+        <label>İade Eden Müşteri</label>
+        <select id="ret-cust"></select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>İade Edilen Ürün</label>
+          <select id="ret-prod"></select>
+        </div>
+        <div class="field">
+          <label>İade Adedi (Çuval)</label>
+          <input id="ret-qty" type="number" min="1" value="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>İade / Değişim Notu</label>
+        <input id="ret-note" placeholder="Örn: 20 gitti 5 tanesi geri döndü">
+      </div>
+      <button type="button" class="btn danger" id="ret-btn" style="width:100%">✓ İadeyi Onayla (Stoğa Ekle, Kasaya Dokunma)</button>
+    </div>
+
+    <!-- Depo Stok Girişi -->
+    <div class="card">
+      <h3 style="color:var(--green);margin-bottom:12px">📦 Depoya Yeni Ürün / Stok Girişi</h3>
+      <div class="grid2">
+        <div class="field">
+          <label>Kategori</label>
+          <select id="st-cat">
+            <option value="Süt Yemi">Süt Yemi</option>
+            <option value="Besi Yemi">Besi Yemi</option>
+            <option value="Küçükbaş Yemleri">Küçükbaş Yemleri</option>
+            <option value="Hammaddeler">Hammaddeler</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ürün Adı</label>
+          <input id="st-name" placeholder="Örn: 19 Protein Süt Yemi 50kg">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Eklenecek Miktar (Çuval)</label>
+          <input id="st-qty" type="number" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Birim Satış Fiyatı (₺)</label>
+          <input id="st-price" type="number" step="any" placeholder="0.00">
+        </div>
+      </div>
+      <button type="button" class="btn primary" id="st-btn" style="width:100%">✓ Ürünü Tanımla / Stoğa Ekle</button>
+    </div>
+
+    <div class="card">
+      <h3>🏭 Güncel Depo Envanteri</h3>
+      <ul class="plist" id="st-list"><li>Stok yükleniyor...</li></ul>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       4. AY AY SEKMELİ ARŞİV & MANUEL AY DEVİRLERİ
+       ========================================================= -->
+  <section class="view" id="v-arsiv" hidden>
+    <div class="card">
+      <h2 style="font-size:1.05rem;margin-bottom:12px">🗂️ Müşteri Paneli, Ay Ay Arşiv & Manuel Devir</h2>
+      
+      <div class="field">
+        <label>Müşteri Seçin</label>
+        <select id="arch-cust"></select>
+      </div>
+
+      <!-- Ay Sekmeleri -->
+      <div class="cat-tabs" id="arch-month-tabs">
+        <button type="button" class="cat-tab" data-month="2026-09">Eylül 2026</button>
+        <button type="button" class="cat-tab" data-month="2026-10">Ekim 2026</button>
+        <button type="button" class="cat-tab active" data-month="2026-11">Kasım 2026</button>
+        <button type="button" class="cat-tab" data-month="2026-12">Aralık 2026</button>
+      </div>
+
+      <!-- Manuel Ay Devri Kutusu -->
+      <div style="background:var(--gold-soft);padding:12px;border-radius:12px;border:1px solid #F3D999;margin-bottom:14px">
+        <label style="font-size:.82rem;font-weight:800;color:var(--gold-ink);display:block;margin-bottom:6px">
+          📅 Manuel Ay Devri (Süt Müstahsili Sarkan Bakiye Yönetimi)
+        </label>
+        <div class="grid2">
+          <input id="manual-devir-amount" type="number" step="any" placeholder="Devreden Tutar (₺)">
+          <button type="button" class="btn primary" id="save-devir-btn">Devri Kaydet</button>
+        </div>
+        <small id="current-devir-info" style="display:block;margin-top:6px;color:var(--gold-ink);font-weight:700"></small>
+      </div>
+
+      <h3 style="font-size:.95rem;margin-bottom:8px">Seçili Aya Ait Giden Ürünler & Hareketler</h3>
+      <ul class="plist" id="arch-list"><li>Müşteri seçin...</li></ul>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       5. MÜŞTERİ LİSTESİ YÖNETİMİ
+       ========================================================= -->
+  <section class="view" id="v-musteriler" hidden>
+    <div class="card">
+      <h2 style="font-size:1.05rem;margin-bottom:12px">👥 Kayıtlı Müşteriler & Müstahsiller</h2>
+      <div class="grid2">
+        <div class="field"><label>Ad Soyad</label><input id="m-name" placeholder="Örn: Emre Şahan"></div>
+        <div class="field"><label>Mahalle / Köy</label><input id="m-loc" placeholder="Örn: Büyükyenice"></div>
+      </div>
+      <div class="field"><label>Telefon (WhatsApp Fiş İçin)</label><input id="m-phone" placeholder="05XX XXX XX XX"></div>
+      <button type="button" class="btn primary" id="m-save-btn" style="width:100%">+ Yeni Müşteriyi Sisteme Kaydet</button>
+    </div>
+
+    <div class="card">
+      <h3>Kayıtlı Müşteri Rehberi</h3>
+      <ul class="plist" id="m-list"><li>Yükleniyor...</li></ul>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       6. KAPSAMLI GÜN SONU Z-RAPORU ÖZETİ
+       ========================================================= -->
+  <section class="view" id="v-rapor" hidden>
+    <div class="card" id="z-rapor-print-area">
+      <div style="text-align:center;border-bottom:2px solid var(--line);padding-bottom:12px;margin-bottom:14px">
+        <h2 style="color:var(--green)">İNCİ TİCARET — GÜN SONU Z-RAPORU</h2>
+        <small id="zr-date-label" style="color:var(--muted);font-weight:700"></small>
+      </div>
+
+      <div style="display:grid;gap:8px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border-radius:10px">
+          <span>1. Toplam Peşin Satışlar (Nakit Giren):</span>
+          <b class="num" id="zr-pesin" style="color:var(--green)">0,00 ₺</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border-radius:10px">
+          <span>2. Toplam Kağıtlı / Vadeli Satışlar:</span>
+          <b class="num" id="zr-vadeli" style="color:var(--blue)">0,00 ₺</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border-radius:10px">
+          <span>3. Kasadan Çıkan Giderler (Yevmiye/Avans/Kira/Banka):</span>
+          <b class="num" id="zr-gider" style="color:var(--red)">0,00 ₺</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface-2);border-radius:10px">
+          <span>4. Toplam İade Alınan Ürün Adedi (Kasayı Etkilemez):</span>
+          <b class="num" id="zr-iade-qty">0 Adet</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:14px;background:var(--green-soft);border-radius:12px;color:var(--green-dark)">
+          <span style="font-weight:800">NET KASADAKİ NAKİT BAKİYE:</span>
+          <b class="num" id="zr-net" style="font-size:1.3rem">0,00 ₺</b>
+        </div>
+      </div>
+
+      <h4 style="font-size:.9rem;margin-bottom:8px">Gün İçi Kasa & Operasyon Detayları</h4>
+      <ul class="plist" id="zr-detail-list"></ul>
+    </div>
+    <button type="button" class="btn primary" id="pdf-btn" style="width:100%">📄 Z-Raporunu PDF Olarak İndir</button>
+  </section>
+</main>
+
+<!-- BEYAZ FİŞ & WHATSAPP PAYLAŞIM MODALI -->
+<div class="modal-backdrop" id="fis-modal" hidden>
+  <div class="modal-box">
+    <div class="card-head">
+      <h3>🧾 Beyaz Teslimat Fişi</h3>
+      <button type="button" class="btn sm" id="close-fis-modal">✕ Kapat</button>
+    </div>
+    <div class="fis-paper" id="fis-content"></div>
+    <div class="grid2" style="margin-top:12px">
+      <button type="button" class="btn primary" id="share-wa-btn">📲 WhatsApp'tan Gönder</button>
+      <button type="button" class="btn secondary" id="print-fis-pdf-btn">📄 Fişi PDF İndir</button>
+    </div>
+  </div>
 </div>
-<div class="section toc">
-  <div class="col">
-    <h4><a href="#html">HTML</a></h4>
-    <ul>
-      <li><a href="#html-yazim-kurallari">Yazım kuralları</a></li>
-      <li><a href="#html-doctype">HTML5 doctype</a></li>
-      <li><a href="#html-dil">Dil özniteliği</a></li>
-      <li><a href="#html-karakter-kodlamasi">Karakter kodlaması</a></li>
-      <li><a href="#html-ie-uyumluluk-modu">Internet Explorer uyumluluk modu</a></li>
-      <li><a href="#html-css-ve-javascript">CSS ve JavaScript yerleştirmeleri</a></li>
-      <li><a href="#html-pratiklik">Pratiklik önemli</a></li>
-      <li><a href="#html-oznitelik-siralamasi">Öznitelik sıralaması</a></li>
-      <li><a href="#html-boolean-oznitelikler">Boolean öznitelikler</a></li>
-      <li><a href="#html-kodunu-sadelestirmek">HTML kodunu sadeleştirmek</a></li>
-      <li><a href="#html-javascript">JavaScript ile oluşturulmuş HTML kodu</a></li>
-    </ul>
-  </div>
-  <div class="col">
-    <h4><a href="#css">CSS</a></h4>
-    <ul>
-      <li><a href="#css-yazim-kurallari">CSS yazım kuralları</a></li>
-      <li><a href="#css-tanimlama-sirasi">Tanımlama sırası</a></li>
-      <li><a href="#css-import-kullanmayin">@import kullanmayın</a></li>
-      <li><a href="#css-medya-sorgulari">Medya sorguları</a></li>
-      <li><a href="#css-onekli-ozellikler">Önekli özellikler</a></li>
-      <li><a href="#css-tek-satirlik-tanimlamalar">Tek satırlık tanımlamalar</a></li>
-      <li><a href="#css-kisaltilmis-notasyon">Kısaltılmış notasyon</a></li>
-      <li><a href="#css-yuvalama">Less ve Sass yuvalamaları</a></li>
-      <li><a href="#css-hesaplamalar">Less ve Sass hesaplamaları</a></li>
-      <li><a href="#css-yorumlar">Yorumlar</a></li>
-      <li><a href="#css-siniflar">Sınıflar</a></li>
-      <li><a href="#css-seciciler">Seçiciler</a></li>
-      <li><a href="#css-organizasyon">Organizasyon</a></li>
-    </ul>
+
+<!-- HIZLI MÜŞTERİ EKLEME MODALI -->
+<div class="modal-backdrop" id="quick-cust-modal" hidden>
+  <div class="modal-box">
+    <div class="card-head">
+      <h3>⚡ Hızlı Müşteri Ekle</h3>
+      <button type="button" class="btn sm" id="close-qc-modal">✕</button>
+    </div>
+    <div class="field"><label>Müşteri Adı Soyadı</label><input id="qc-name" placeholder="Örn: Abdullah Kundakçı"></div>
+    <div class="field"><label>Mahalle / Bölge</label><input id="qc-loc" placeholder="Örn: İvrindi"></div>
+    <div class="field"><label>Telefon</label><input id="qc-phone" placeholder="05XX..."></div>
+    <button type="button" class="btn primary" id="qc-save-btn" style="width:100%">✓ Kaydet ve Seç</button>
   </div>
 </div>
 
+<!-- ALT MENÜ -->
+<nav class="nav">
+  <a href="#siparisler" data-v="siparisler" aria-current="page">Siparişler</a>
+  <a href="#pesin" data-v="pesin">Peşin & Kasa</a>
+  <a href="#stok" data-v="stok">Stok & İade</a>
+  <a href="#arsiv" data-v="arsiv">Arşiv</a>
+  <a href="#musteriler" data-v="musteriler">Müşteriler</a>
+  <a href="#rapor" data-v="rapor">Z-Raporu</a>
+</nav>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {getDatabase,ref,onValue,push,update,set,get} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-<div class="section" id="golden-rule">
-  <div class="col">
-    <h2>Altın kural</h2>
-    <p>İster buradaki, ister size ait olan, kabul edilmiş kuralları her zaman iyileştirmeye çalışın. Küçük ya da büyük farketmez, neyin yanlış olduğunu söyleyin. Bu Kod Rehberine eklemeler yapmak ya da katkıda bulunmak için lütfen <a href="https://github.com/mdo/code-guide/issues/new">GitHub üstünde bir konu açın</a>.</p>
-  </div>
-  <div class="col">
-    <blockquote>
-      <p>Kodun her satırı, tek bir kişi tarafından yazılmış gibi görünmelidir, katkıda bulunanların sayısı bir şeyi değiştirmez.</p>
-    </blockquote>
-  </div>
-</div>
+const firebaseConfig = {
+  apiKey: "AIzaSyA3rGCgSsvGhl-NMs0D26jA8GwUUCxHXtc",
+  authDomain: "inciticaret-a4f6c.firebaseapp.com",
+  projectId: "inciticaret-a4f6c",
+  databaseURL: "https://inciticaret-a4f6c-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
+const fmt = (n) => (Math.round((Number(n)||0)*100)/100).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})+" ₺";
+const todayStr = () => new Date().toISOString().slice(0,10);
+const currentMonthStr = () => new Date().toISOString().slice(0,7);
 
-<div class="heading" id="html">
-  <h2>HTML</h2>
-</div>
+let state = {
+  customers: [],
+  stocks: [],
+  orders: [],
+  cashTransactions: [],
+  returns: [],
+  devirler: {},
+  selectedCat: "Tümü",
+  selectedArchiveMonth: "2026-11",
+  cart: [],
+  activeFisText: ""
+};
 
-<div class="section" id="html-yazim-kurallari">
-  <div class="col">
-    <h3>Yazım kuralları</h3>
-    <ul>
-      <li>İki boşluktan oluşan tablar kullanın - bu kullanım, kod formatlayıcıların her ortamda aynı davranmasını garantilemenin tek yoludur.</li>
-      <li>Yuvalanmış elemanlar girintili olmalıdır (iki boşlukla).</li>
-      <li>Özniteliklerde asla tek tırnak kullanmayın, her zaman çift tırnak kullanın.</li>
-      <li>Kendiliğinen kapanan elemanlarda bölü çizgisini kullanmayın - <a href="http://dev.w3.org/html5/spec-author-view/syntax.html#syntax-start-tag">HTML5 şartnamesi</a> bunun isteğe bağlı olduğunu söylüyor.</li>
-      <li>İsteğe bağlı kapatma etiketlerini ihmal etmeyin (örneğin <code>&lt;/li&gt;</code> ya da <code>&lt;/body&gt;</code>).</li>
-    </ul>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/syntax.html %}{% endhighlight %}
-  </div>
-</div>
+// =========================================================
+// 1. VERİTABANI DİNLEYİCİLERİ (REALTIME SYNC)
+// =========================================================
+onValue(ref(db, "customers"), snap => {
+  const val = snap.val() || {};
+  state.customers = Object.keys(val).map(id => ({id, ...val[id]})).sort((a,b) => a.name.localeCompare(b.name));
+  renderCustomerLists();
+});
 
-<div class="section" id="html-doctype">
-  <div class="col">
-    <h3>HTML5 doctype</h3>
-    <p>Bu basit doctype ifadesini her HTML sayfasının başında kullanarak mümkün olan tüm tarayıcılarda standart modun kullanılmasını ve daha tutarlı çıktılar üretilmesini sağlamaya çalışın.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/doctype.html %}{% endhighlight %}
-  </div>
-</div>
+onValue(ref(db, "stocks"), snap => {
+  const val = snap.val() || {};
+  state.stocks = Object.keys(val).map(id => ({id, ...val[id]}));
+  renderProductLists();
+});
 
-<div class="section" id="html-dil">
-  <div class="col">
-    <h3>Dil özniteliği</h3>
-    <p>HTML5 şartnamesi diyor ki:</p>
-    <blockquote>
-      <p>Geliştiricilerin kök html elemanına lang özniteliğini vererek dokümanın dilini belirtmeleri önerilir. Bu kullanım, metni konuşmaya çeviren araçların hangi telaffuzu kullanacaklarını beliremelerine, çeviri araçlarının hangi kuralları kullanacaklarını belirlemelerine, vb., yardımcı olur.</p>
-    </blockquote>
-    <p><a href="http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-html-element">Şartnamede</a> <code>lang</code> özniteliği hakkında daha fazla bilgi edinebilirsiniz.</p>
-    <p>Sitepoint'teki <a href="http://reference.sitepoint.com/html/lang-codes">dil kodları listesine</a> de göz atabilirsiniz.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/lang.html %}{% endhighlight %}
-  </div>
-</div>
+onValue(ref(db, "orders"), snap => {
+  const val = snap.val() || {};
+  state.orders = Object.keys(val).map(id => ({id, ...val[id]})).sort((a,b) => b.at - a.at);
+  renderOrders();
+  renderArchive();
+  renderZReport();
+});
 
-<div class="section" id="html-ie-uyumluluk-modu">
-  <div class="col">
-    <h3>IE uyumluluk modu</h3>
-    <p>Internet Explorer, doküman uyumluluk modu <code>&lt;meta&gt;</code> tagını özelleştirerek, tarayıcının çıktı üretirken hangi IE sürümünü kullanacağını belirtmemize olanak sağlar. Şartlar aksini gerektirmediği sürece en doğru olan, <strong>edge modunu</strong> kullanarak en son desteklenen sürümün kullanılmasını istemektir.</p>
-    <p>Detaylı bilgi için, <a href="http://stackoverflow.com/questions/6771258/whats-the-difference-if-meta-http-equiv-x-ua-compatible-content-ie-edge-e">bu harika Stack Overflow makalesini okuyun</a>.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/ie-compatibility-mode.html %}{% endhighlight %}
-  </div>
-</div>
+onValue(ref(db, "cashTransactions"), snap => {
+  const val = snap.val() || {};
+  state.cashTransactions = Object.keys(val).map(id => ({id, ...val[id]})).sort((a,b) => b.at - a.at);
+  renderCash();
+  renderZReport();
+});
 
-<div class="section" id="html-karakter-kodlamasi">
-  <div class="col">
-    <h3>Karakter kodlaması</h3>
-    <p>Doğru bir karakter kodlaması kullanarak, hızlı ve kolay bir şekilde, içeriğinizin düzgün çıktılanmasını sağlayın. Bunu yaparken (&amp;raquo;, &amp;copy;, gibi) özel HTML öğeleri yerine karşılıkları olan özel karakterleri kullanmak isterseniz, bunları destekleyen bir karakter kodlaması (genellik UTF-8) kullanabilirsiniz.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/encoding.html %}{% endhighlight %}
-  </div>
-</div>
+onValue(ref(db, "returns"), snap => {
+  const val = snap.val() || {};
+  state.returns = Object.keys(val).map(id => ({id, ...val[id]}));
+  renderZReport();
+});
 
-<div class="section" id="html-css-ve-javascript">
-  <div class="col">
-    <h3>CSS ve JavaScript yerleştirmeleri</h3>
-    <p>İlgili HTML5 şartnamelerine göre, CSS ve JavaScript dosyalarını/kodlarını yerleştirirken <code>type</code> özniteliğinin değerini <code>text/css</code> ve <code>text/javascript</code> olarak belirtmeye gerek yok; çünkü bu değerler, ilgili html etiketleri için önceden tanımlanmış değerler.</p>
-    <h4>HTML5 şartname linkleri</h4>
-    <ul>
-      <li><code>link</code> <a href="http://www.w3.org/TR/2011/WD-html5-20110525/semantics.html#the-link-element">kullanımı</a></li>
-      <li><code>style</code> <a href="http://www.w3.org/TR/2011/WD-html5-20110525/semantics.html#the-style-element">kullanımı</a></li>
-      <li><code>script</code> <a href="http://www.w3.org/TR/2011/WD-html5-20110525/scripting-1.html#the-script-element">kullanımı</a></li>
-    </ul>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/style-script.html %}{% endhighlight %}
-  </div>
-</div>
+onValue(ref(db, "devirler"), snap => {
+  state.devirler = snap.val() || {};
+  renderArchive();
+});
 
-<div class="section" id="html-pratiklik">
-  <div class="col">
-    <h3>Pratiklik önemli</h3>
-    <p>HTML standartlarını ve anlamlılığı korumaya çalışın fakat pratikliği göz ardı etmeyin. Mümkün olduğu sürece, kodunuzdaki karmaşıklığı en aza indirin.</p>
-  </div>
-</div>
+// =========================================================
+// 2. MÜŞTERİ YÖNETİMİ & HIZLI MÜŞTERİ EKLEME
+// =========================================================
+function renderCustomerLists() {
+  const q = (document.getElementById("ord-cust-search").value || "").toLowerCase();
+  const filtered = state.customers.filter(c => c.name.toLowerCase().includes(q) || (c.loc||"").toLowerCase().includes(q));
+  
+  document.getElementById("ord-cust-list").innerHTML = filtered.map(c => `
+    <button type="button" class="v-list-item" data-cid="${c.id}" data-cname="${c.name}" data-cloc="${c.loc||''}">
+      <span><b>${c.name}</b> <small style="color:var(--muted)">(${c.loc||'Bölge Yok'})</small></span>
+      <span style="color:var(--green);font-size:.8rem">Seç →</span>
+    </button>
+  `).join("") || '<div style="padding:12px;color:var(--muted);font-size:.85rem">Kayıtlı müşteri bulunamadı. Yukarıdan hızlı ekleyin.</div>';
 
-<div class="section" id="html-oznitelik-siralamasi">
-  <div class="col">
-    <h3>Öznitelik sıralaması</h3>
-    <p>Kodun okunurluğunu artırmak için HTML öznitelikleri bu belirli sırada gelmelidir.</p>
-    <ul>
-      <li><code>class</code></li>
-      <li><code>id</code>, <code>name</code></li>
-      <li><code>data-*</code></li>
-      <li><code>src</code>, <code>for</code>, <code>type</code>, <code>href</code>, <code>value</code></li>
-      <li><code>title</code>, <code>alt</code></li>
-      <li><code>aria-*</code>, <code>role</code></li>
-    </ul>
-    <p><code>class</code> özniteliği, yeniden kullanılabilen harika bileşenler oluşturur, bu nedenle önce gelir. <code>id</code> özniteliği ise daha spesifiktir ve daha az kullanılmalıdır (örneğin sayfa içinde yer imi tanımlarken), bu nedenle ikinci sıradadır.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/attribute-order.html %}{% endhighlight %}
-  </div>
-</div>
+  // Dikey listeden müşteri seçme
+  document.querySelectorAll("#ord-cust-list .v-list-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("ord-selected-cust-id").value = btn.dataset.cid;
+      document.getElementById("ord-selected-cust-badge").textContent = `✓ Seçili Müşteri: ${btn.dataset.cname} (${btn.dataset.cloc})`;
+      document.querySelectorAll("#ord-cust-list .v-list-item").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
 
-<div class="section" id="html-boolean-oznitelikler">
-  <div class="col">
-    <h3>Boolean öznitelikler</h3>
-    <p>Boolean özniteliklerin bir değer atanmaya ihtiyacı yoktur. XHTML, boolean özniteliklere bir değer atanmasını zorunlu kılar ama HTML5'te böyle bir zorunluluk yoktur.</p>
-    <p>Daha detaylı bilgi için <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/common-microsyntaxes.html#boolean-attributes">WhatWG'nin boolean öznitelikler bölümüne</a> bakalım:</p>
-    <blockquote>
-      <p>Bir eleman üzerinde bir boolean niteliğin varlığı <code>true</code> değerini temsil eder ve niteliğin yokluğu <code>false</code> değerini temsil eder.</p>
-    </blockquote>
+  // Diğer select kutuları
+  const opts = '<option value="">Müşteri Seçin...</option>' + state.customers.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name} (${c.loc||'-'})</option>`).join("");
+  ["cs-cust", "ret-cust", "arch-cust", "m-list"].forEach(id => {
+    if(id !== "m-list") document.getElementById(id).innerHTML = opts;
+  });
 
-    <p>Eğer bir öznitelik değeri atamak <em>zorundaysanız</em> -<strong>ki değilsiniz</strong>- WhatWG'nin prensiplerini dikkate alın:</p>
-    <blockquote>
-      <p>Eğer özniteliğe bir değer verildiyse, bu değer ya boş bir string olmalı ya da öznitelik adının kendisi olmalı, başında veya sonunda boşluk olmadan.</p>
-    </blockquote>
-    <p><strong>Kısacası bir değer atamayın.</strong></p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/boolean-attributes.html %}{% endhighlight %}
-  </div>
-</div>
+  document.getElementById("m-list").innerHTML = state.customers.map(c => `
+    <li>
+      <div><b>${c.name}</b><br><small style="color:var(--muted)">${c.loc||'Mahalle belirtilmedi'} • ${c.phone||'Tel yok'}</small></div>
+      <span class="badge tamam">Kayıtlı</span>
+    </li>
+  `).join("") || '<li>Henüz müşteri eklenmedi.</li>';
+}
 
-<div class="section" id="html-kodunu-sadelestirmek">
-  <div class="col">
-    <h3>HTML kodunu sadeleştirmek</h3>
-    <p>HTML yazarken, gereksiz üst eleman kullanmaktan kaçının. Çoğu zaman bu, iterasyon ve yeniden düzenleme gerektirir ama daha az HTML üretir. Şu örneği ele alalım:</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include html/reducing-markup.html %}{% endhighlight %}
-  </div>
-</div>
+document.getElementById("ord-cust-search").addEventListener("input", renderCustomerLists);
 
-<div class="section" id="html-javascript">
-  <div class="col">
-    <h3>JavaScript ile oluşturulmuş HTML kodu</h3>
-    <p>JavaScript içinde yazılmış HTML kodları, içeriğin bulunmasını/düzenlenmesini zorlaştırır ve performansını da düşürür. Mümkün olduğunca bundan kaçının.</p>
-    <p><small><strong>Çevirmen Notu:</strong> Muhtemelen <a href="http://getbootstrap.com">Bootstrap</a> kütüphanesini kullanmış ya da en azından duymuşsunuzdur. Bu makalenin yazarı olan <a href="https://github.com/mdo">@mdo</a>, Bootstrap'ın geliştiricilerindendir. Bootstrap'ın JavaScript kodlarına baktığımızda neredeyse hiç HTML kodu üretilmediğini ve düzgün çalışmak için belirli bir HTML yapısına ihtiyaç duyduğunu görürüz. Yani kendisi bu nasihate başarılı bir şekilde uymuş.</small></p>
-  </div>
-</div>
+// Hızlı Müşteri Modalı
+const openQuickModal = () => document.getElementById("quick-cust-modal").hidden = false;
+document.getElementById("btn-open-quick-cust").addEventListener("click", openQuickModal);
+document.getElementById("btn-inline-new-cust").addEventListener("click", openQuickModal);
+document.getElementById("close-qc-modal").addEventListener("click", () => document.getElementById("quick-cust-modal").hidden = true);
 
+document.getElementById("qc-save-btn").addEventListener("click", () => {
+  const name = document.getElementById("qc-name").value.trim();
+  const loc = document.getElementById("qc-loc").value.trim();
+  const phone = document.getElementById("qc-phone").value.trim();
+  if(!name) return alert("Müşteri adı zorunludur.");
 
+  const newRef = push(ref(db, "customers"));
+  set(newRef, { name, loc, phone, at: Date.now() }).then(() => {
+    document.getElementById("ord-selected-cust-id").value = newRef.key;
+    document.getElementById("ord-selected-cust-badge").textContent = `✓ Seçili Müşteri: ${name} (${loc})`;
+    document.getElementById("qc-name").value = "";
+    document.getElementById("qc-loc").value = "";
+    document.getElementById("qc-phone").value = "";
+    document.getElementById("quick-cust-modal").hidden = true;
+  });
+});
 
-<div class="heading" id="css">
-  <h2>CSS</h2>
-</div>
+document.getElementById("m-save-btn").addEventListener("click", () => {
+  const name = document.getElementById("m-name").value.trim();
+  const loc = document.getElementById("m-loc").value.trim();
+  const phone = document.getElementById("m-phone").value.trim();
+  if(!name) return alert("Ad soyad girin.");
+  push(ref(db, "customers"), { name, loc, phone, at: Date.now() }).then(() => {
+    document.getElementById("m-name").value = "";
+    document.getElementById("m-loc").value = "";
+    document.getElementById("m-phone").value = "";
+    alert("Müşteri kaydedildi.");
+  });
+});
 
-<div class="section" id="css-yazim-kurallari">
-  <div class="col">
-    <h3>Yazım kuralları</h3>
-    <ul>
-      <li>İki boşluktan oluşan tablar kullanın - bu kullanım, kod formatlayıcıların her ortamda aynı davranmasını garantilemenin tek yoludur.</li>
-      <li>Seçicileri gruplandırırken, her bir seçicinin tek bir satırda olmasını sağlayın.</li>
-      <li>Okunabilirliği arttırmak için tanımlama bloklarının başlangıcındaki küme parantezinden önce bir boşluk bırakın.</li>
-      <li>Tanımlama bloklarının bitimindeki küma parantezini yeni bir satırda konumlandırın.</li>
-      <li>Her bir tanımlama için <code>:</code> işaretinden sonra bir boşluk bırakın.</li>
-      <li>Daha doğru hata raporlaması için her bir tanımlama, kendi satırında olmalıdır.</li>
-      <li>Tüm tanımlamaları noktalı virgül ile bitirin. Son tanımlamada kullanılacak olan noktalı virgül isteğe bağlıdır ama kullanmazsanız kodunuz hataya sebep olmaya daha meyilli hale gelir.</li>
-      <li>Virgülle ayrılan değerler, virgülden sonra bir boşluk bırakılarak yazılmalıdır (örneğin <code>box-shadow</code>).</li>
-      <li><code>rgb()</code>, <code>rgba()</code>, <code>hsl()</code>, <code>hsla()</code> ve <code>rect()</code> <em>komutları içinde</em> boşluk kullanmayın. Bu kullanım, virgülle ayrılan değerler içindeki (virgülsüz) renk tanımlamalarını ayırt etmekte yardımcı olur.</li>
-      <li>Ondalıklı özellik değerlerinin başında sıfır kullanmayın (örneğin <code>0.5</code> yerine <code>.5</code> ve <code>-0.5px</code> yerine de <code>-.5px</code> kullanın).</li>
-      <li>Bütün onaltılık değerleri küçük harfle yazın; örneğin <code>#fff</code>. Küçük harfler daha benzersiz olma eğiliminde olduklarından, belgeyi tararken ayırt etmek çok daha kolay olur.</li>
-      <li>Mümkün olduğunda onaltılık değerleri kısa formatta kullanın; örneğin <code>#ffffff</code> yerine <code>#fff</code> kullanın.</li>
-      <li>Seçicilerin içinde kullanılan öznitelik değerlerini çift tırnak içine alın; örneğin <code>input[type="text"]</code>. <a href="http://mathiasbynens.be/notes/unquoted-attribute-values#css">Çift tırnak kullanımı sadece bazı durumlarda seçime bağlıdır</a>, tutarlılık için  her zaman çift tırnak kullanmak iyi bir uygulamadır.</li>
-      <li>Sıfıra eşit olan değerlerde birim belirtmekten kaçının; örneğin <code>margin: 0px;</code> yerine <code>margin: 0;</code> kullanın.</li>
-    </ul>
-    <p>Kafanızda burada kullanılan terimlerle alakalı soru işaretleri mi var? Vikipedi'deki <a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets#Syntax">Cascading Style Sheets makalesinin Syntax bölümüne</a> bakın.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/syntax.css %}{% endhighlight %}
-  </div>
-</div>
+// =========================================================
+// 3. ÜRÜN KATEGORİLERİ, STOK VE DİKEY ÜRÜN LİSTESİ
+// =========================================================
+document.querySelectorAll("#ord-cat-tabs .cat-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#ord-cat-tabs .cat-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    state.selectedCat = tab.dataset.cat;
+    renderProductLists();
+  });
+});
 
-<div class="section" id="css-tanimlama-sirasi">
-  <div class="col">
-    <h3>Tanımlama sırası</h3>
-    <p>İlişkili özellik tanımlamaları aşağıdaki sırayla gruplanmalıdır:</p>
-    <ol>
-      <li>Posizyonlama</li>
-      <li>Box model</li>
-      <li>Tipografi</li>
-      <li>Görsellik</li>
-    </ol>
-    <p>Pozisyonlama önce gelir, çünkü bir eleman pozisyonlandığında ilgili element, dokümanın normal sıralamasından çıkarılabilir ve bu da box model ile ilişkili stillerin yeniden hesaplanmasına neden olur. Sonrasında box model, bileşenin boyutlarını ve konumunu netleştirmek için gelir.</p>
-    <p>Bileşenin içinde yer alan diğer tüm özellikler önceki iki bölümü (pozisyonlama ve box model) etkilemeden en sona eklenir.</p>
-    <p>Özelliklerin ve özellik sıralamalarının tam bir listesi için lütfen <a href="http://twitter.github.com/recess">Recess</a>'e bakın.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/declaration-order.css %}{% endhighlight %}
-  </div>
-</div>
+function renderProductLists() {
+  const filtered = state.selectedCat === "Tümü" ? state.stocks : state.stocks.filter(s => s.cat === state.selectedCat);
+  
+  document.getElementById("ord-prod-list").innerHTML = filtered.map(s => `
+    <button type="button" class="v-list-item" data-sid="${s.id}" data-sname="${s.name}" data-sprice="${s.price||0}">
+      <span><b>${s.name}</b> <small style="color:var(--muted)">[${s.cat||'Genel'}]</small></span>
+      <span><b style="color:var(--green)">${fmt(s.price||0)}</b> • <small>Stok: ${s.qty}</small></span>
+    </button>
+  `).join("") || '<div style="padding:12px;color:var(--muted);font-size:.85rem">Bu kategoride ürün yok. Stok sekmesinden ekleyin.</div>';
 
-<div class="section" id="css-import-kullanmayin">
-  <div class="col">
-    <h3><code>@import</code> kullanmayın</h3>
-    <p><code>&lt;link&gt;</code> ile karşılaştırıldığında, <code>@import</code> yavaştır, ekstra sorgu gerektirir ve beklenmeyen sorunlara sebep olabilir. Bunlardan kaçınmak için farklı bir yaklaşım tercih edin:</p>
-    <ul>
-      <li>Birden fazla <code>&lt;link&gt;</code> elemanı kullanın</li>
-      <li>Sass ve Less gibi bir ön işlemci kullanarak CSS'inizi tek bir dosyada birleştirin</li>
-      <li>Rails, Jekyll veya diğer ortamlarda sunulan özelliklerle CSS dosyalarınızı bir düzene sokun</li>
-    </ul>
-    <p>Daha fazla bilgi için <a href="http://www.stevesouders.com/blog/2009/04/09/dont-use-import/">Steve Souders'ın makalesini okuyun</a>.</p>
-  </div>
-  <div class="col">
-    {% highlight html %}{% include css/import.html %}{% endhighlight %}
-  </div>
-</div>
+  document.querySelectorAll("#ord-prod-list .v-list-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("sel-prod-name").value = btn.dataset.sname;
+      document.getElementById("sel-prod-name").dataset.sid = btn.dataset.sid;
+      document.getElementById("sel-prod-price").value = btn.dataset.sprice;
+      document.querySelectorAll("#ord-prod-list .v-list-item").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
 
-<div class="section" id="css-medya-sorgulari">
-  <div class="col">
-    <h3>Medya sorguları</h3>
-    <p>Medya sorgularını, mümkün olduğu müddetçe ilgili CSS kural gruplarının yakınına yerleştirin. Tüm medya sorgularını tek bir dosyada ya da CSS dosyasının en sonunda paketlemeyin. Aksi taktirde insanların bu kodları gözden kaçırması ihtimalini arttırmış olursunuz. İşte tipik bir kulalnım:</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/media-queries.css %}{% endhighlight %}
-  </div>
-</div>
+  const prodOpts = '<option value="">Ürün Seçin...</option>' + state.stocks.map(s => `<option value="${s.id}" data-name="${s.name}" data-price="${s.price||0}">${s.name} (Stok: ${s.qty})</option>`).join("");
+  document.getElementById("cs-prod").innerHTML = prodOpts;
+  document.getElementById("ret-prod").innerHTML = prodOpts;
 
-<div class="section" id="css-onekli-ozellikler">
-  <div class="col">
-    <h3>Önekli özellikler</h3>
-    <p>Önekli özellikleri kullanırken her bir özelliğe girinti verin, öyle ki alttaki ve üstteki özellikler kolayca aynı anda (multi-line) düzenlenebilsin.</p>
-    <p>Textmate'de <strong>Text &rarr; Edit Each Line in Selection</strong> (&#8963;&#8984;A) kullanın. Sublime Text 2'de <strong>Selection &rarr; Add Previous Line</strong> (&#8963;&#8679;&uarr;) ve <strong>Selection &rarr;  Add Next Line</strong> (&#8963;&#8679;&darr;) kullanın</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/prefixed-properties.css %}{% endhighlight %}
-  </div>
-</div>
+  document.getElementById("st-list").innerHTML = state.stocks.map(s => `
+    <li>
+      <div><b>${s.name}</b><br><small style="color:var(--muted)">Kategori: ${s.cat||'Genel'} • Birim: ${fmt(s.price||0)}</small></div>
+      <span class="badge ${s.qty > 10 ? 'tamam' : 'iade'}">${s.qty} Çuval</span>
+    </li>
+  `).join("") || '<li>Depoda ürün kaydı yok.</li>';
+}
 
-<div class="section" id="css-tek-satirlik-tanimlamalar">
-  <div class="col">
-    <h3>Tek satırlık tanımlamalar</h3>
-    <p>Bri kural setinin <strong>sadece bir tanımlama</strong> içerdiği durımlarda, okunabilirlik ve hızlı düzenlenebilirlik için satır sonlarını silmeyi düşünün. Birden fazla tanımlama içeren kural setlerinde her tanımlama ayrı bir satıra yazılmalıdır.</p>
-    <p>Buradaki anahtar faktör hata yakalamadır. Örneğin CSS validator 183. satırda bir hata yazım hatası olduğunu söylüyor. Tek tanımlamalı bir kural setinde sorun yok, hatayı kaçırmazsınız. Birden fazla tanımlamalı bir sette ise her bir tanımlamayı ayrı satıra almak, akıl sağlığınız için bir gerekliliktir.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/single-declarations.css %}{% endhighlight %}
-  </div>
-</div>
+document.getElementById("st-btn").addEventListener("click", () => {
+  const cat = document.getElementById("st-cat").value;
+  const name = document.getElementById("st-name").value.trim();
+  const qty = Number(document.getElementById("st-qty").value);
+  const price = Number(document.getElementById("st-price").value);
+  if(!name) return alert("Ürün adı girin.");
 
-<div class="section" id="css-kisaltilmis-notasyon">
-  <div class="col">
-    <h3>Shorthand notation</h3>
-    <p>Strive to limit use of shorthand declarations to instances where you must explicitly set all the available values. Common overused shorthand properties include:</p>
-    <ul>
-      <li><code>padding</code></li>
-      <li><code>margin</code></li>
-      <li><code>font</code></li>
-      <li><code>background</code></li>
-      <li><code>border</code></li>
-      <li><code>border-radius</code></li>
-    </ul>
-    <p>Often times we don't need to set all the values a shorthand property represents. For example, HTML headings only set top and bottom margin, so when necessary, only override those two values. Excessive use of shorthand properties often leads to sloppier code with unnecessary overrides and unintended side effects.</p>
-    <p>The Mozilla Developer Network has a great article on <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties">shorthand properties</a> for those unfamiliar with notation and behavior.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/shorthand.css %}{% endhighlight %}
-  </div>
-</div>
+  const existing = state.stocks.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if(existing) {
+    update(ref(db, `stocks/${existing.id}`), { qty: Number(existing.qty) + qty, price: price || existing.price, cat });
+  } else {
+    push(ref(db, "stocks"), { cat, name, qty, price });
+  }
+  document.getElementById("st-name").value = "";
+  document.getElementById("st-qty").value = "";
+  document.getElementById("st-price").value = "";
+  alert("Stok güncellendi.");
+});
 
-<div class="section" id="css-yuvalama">
-  <div class="col">
-    <h3>Nesting in Less and Sass</h3>
-    <p>Avoid unnecessary nesting. Just because you can nest, doesn't mean you always should. Consider nesting only if you must scope styles to a parent and if there are multiple elements to be nested.</p>
-  </div>
-  <div class="col">
-    {% highlight scss %}{% include css/nesting.scss %}{% endhighlight %}
-  </div>
-</div>
+// =========================================================
+// 4. SEPET VE SİPARİŞ KAYIT + BEYAZ FİŞ + BEKLEYEN YÜK
+// =========================================================
+document.getElementById("toggle-load-btn").addEventListener("click", () => {
+  const body = document.getElementById("load-panel-body");
+  const icon = document.getElementById("toggle-load-icon");
+  body.hidden = !body.hidden;
+  icon.textContent = body.hidden ? "Göster ▼" : "Gizle ▲";
+});
 
-<div class="section" id="css-hesaplamalar">
-  <div class="col">
-    <h3>Operators in Less and Sass</h3>
-    <p>For improved readability, wrap all math operations in parentheses with a single space between values, variables, and operators.</p>
-  </div>
-  <div class="col">
-    {% highlight scss %}{% include css/operators.scss %}{% endhighlight %}
-  </div>
-</div>
+document.getElementById("btn-add-to-cart").addEventListener("click", () => {
+  const name = document.getElementById("sel-prod-name").value;
+  const sid = document.getElementById("sel-prod-name").dataset.sid;
+  const qty = Number(document.getElementById("sel-prod-qty").value);
+  const price = Number(document.getElementById("sel-prod-price").value);
+  if(!name || qty <= 0) return alert("Lütfen listeden bir ürün seçin ve adet girin.");
 
-<div class="section" id="css-yorumlar">
-  <div class="col">
-    <h3>Comments</h3>
-    <p>Code is written and maintained by people. Ensure your code is descriptive, well commented, and approachable by others. Great code comments convey context or purpose. Do not simply reiterate a component or class name.</p>
-    <p>Be sure to write in complete sentences for larger comments and succinct phrases for general notes.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/comments.css %}{% endhighlight %}
-  </div>
-</div>
+  state.cart.push({ sid, name, qty, price, subtotal: qty * price });
+  renderCart();
+});
 
-<div class="section" id="css-siniflar">
-  <div class="col">
-    <h3>Class names</h3>
-    <ul>
-      <li>Keep classes lowercase and use dashes (not underscores or camelCase). Dashes serve as natural breaks in related class (e.g., <code>.btn</code> and <code>.btn-danger</code>).</li>
-      <li>Avoid excessive and arbitrary shorthand notation. <code>.btn</code> is useful for <em>button</em>, but <code>.s</code> doesn't mean anything.</li>
-      <li>Keep classes as short and succinct as possible.</li>
-      <li>Use meaningful names; use structural or purposeful names over presentational.</li>
-      <li>Prefix classes based on the closest parent or base class.</li>
-      <li>Use <code>.js-*</code> classes to denote behavior (as opposed to style), but keep these classes out of your CSS.</li>
-    </ul>
-    <p>It's also useful to apply many of these same rules when creating Sass and Less variable names.</p>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/class-names.css %}{% endhighlight %}
-  </div>
-</div>
+function renderCart() {
+  const area = document.getElementById("ord-cart-area");
+  if(state.cart.length === 0) { area.hidden = true; return; }
+  area.hidden = false;
 
-<div class="section" id="css-seciciler">
-  <div class="col">
-    <h3>Selectors</h3>
-    <ul>
-      <li>Use classes over generic element tag for optimum rendering performance.</li>
-      <li>Avoid using several attribute selectors (e.g., <code>[class^="..."]</code>) on commonly occuring components. Browser performance is known to be impacted by these.</li>
-      <li>Keep selectors short and strive to limit the number of elements in each selector to three.</li>
-      <li>Scope classes to the closest parent <strong>only</strong> when necessary (e.g., when not using prefixed classes).</li>
-    </ul>
-    <p>Additional reading:</p>
-    <ul>
-      <li><a href="http://markdotto.com/2012/02/16/scope-css-siniflar-with-prefixes/">Scope CSS classes with prefixes</a></li>
-      <li><a href="http://markdotto.com/2012/03/02/stop-the-cascade/">Stop the cascade</a></li>
-    </ul>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/selectors.css %}{% endhighlight %}
-  </div>
-</div>
+  let total = 0;
+  document.getElementById("ord-cart-list").innerHTML = state.cart.map((item, idx) => {
+    total += item.subtotal;
+    return `<li>
+      <span><b>${item.name}</b> (${item.qty} Adet x ${fmt(item.price)})</span>
+      <div><b>${fmt(item.subtotal)}</b> <button type="button" class="btn sm danger" onclick="window.removeCartItem(${idx})">✕</button></div>
+    </li>`;
+  }).join("");
+  document.getElementById("ord-cart-total").textContent = fmt(total);
+}
+window.removeCartItem = (idx) => { state.cart.splice(idx, 1); renderCart(); };
 
-<div class="section" id="css-organizasyon">
-  <div class="col">
-    <h3>Organization</h3>
-    <ul>
-      <li>Organize sections of code by component.</li>
-      <li>Develop a consistent commenting hierarchy.</li>
-      <li>Use consistent white space to your advantage when separating sections of code for scanning larger documents.</li>
-      <li>When using multiple CSS files, break them down by component instead of page. Pages can be rearranged and components moved.</li>
-    </ul>
-  </div>
-  <div class="col">
-    {% highlight css %}{% include css/organization-comments.css %}{% endhighlight %}
-  </div>
-</div>
+document.getElementById("btn-save-order").addEventListener("click", () => {
+  const custId = document.getElementById("ord-selected-cust-id").value;
+  if(!custId) return alert("HATA: Panelde kayıtlı olmayan müşteriye sipariş girilemez! Lütfen listeden müşteri seçin veya Hızlı Müşteri Ekle'yi kullanın.");
+  if(state.cart.length === 0) return alert("Sepet boş.");
 
-<div class="section" id="css-editor-prefs">
-  <div class="col">
-    <h3>Editor preferences</h3>
-    <p>Set your editor to the following settings to avoid common code inconsistencies and dirty diffs:</p>
-    <ul>
-      <li>Use soft-tabs set to two spaces.</li>
-      <li>Trim trailing white space on save.</li>
-      <li>Set encoding to UTF-8.</li>
-      <li>Add new line at end of files.</li>
-    </ul>
-    <p>Consider documenting and applying these preferences to your project's <code>.editorconfig</code> file. For an example, see <a href="https://github.com/twbs/bootstrap/blob/master/.editorconfig">the one in Bootstrap</a>. Learn more <a href="http://editorconfig.org">about EditorConfig</a>.</p>
-  </div>
-</div>
+  const cust = state.customers.find(c => c.id === custId);
+  const payType = document.getElementById("ord-pay-type").value;
+  const note = document.getElementById("ord-note").value.trim();
+  const total = state.cart.reduce((s, i) => s + i.subtotal, 0);
+
+  push(ref(db, "orders"), {
+    custId,
+    custName: cust.name,
+    custLoc: cust.loc || "",
+    items: state.cart,
+    total,
+    payType,
+    note,
+    status: "Bekliyor",
+    month: currentMonthStr(),
+    date: todayStr(),
+    at: Date.now()
+  }).then(() => {
+    state.cart = [];
+    renderCart();
+    document.getElementById("ord-note").value = "";
+    alert("Sipariş kaydedildi ve araca yüklenecek bekleyen yüke eklendi!");
+  });
+});
+
+function renderOrders() {
+  const filter = document.getElementById("filter-ord-status").value;
+  const loadMap = {};
+  let totalLoad = 0;
+
+  state.orders.filter(o => o.status === "Bekliyor").forEach(o => {
+    (o.items || []).forEach(it => {
+      loadMap[it.name] = (loadMap[it.name] || 0) + Number(it.qty);
+      totalLoad += Number(it.qty);
+    });
+  });
+
+  document.getElementById("total-load-count").textContent = totalLoad;
+  document.getElementById("bekleyen-yuk-list").innerHTML = Object.keys(loadMap).map(k => `
+    <li><span><b>${k}</b></span><b style="color:var(--green-dark)">${loadMap[k]} Çuval / Adet</b></li>
+  `).join("") || '<li>Şu an araca yüklenecek bekleyen yük yok.</li>';
+
+  const list = filter === "Tümü" ? state.orders : state.orders.filter(o => o.status === filter);
+  document.getElementById("ord-list").innerHTML = list.map(o => {
+    const itemsStr = (o.items || []).map(i => `${i.name} (${i.qty} Ad.)`).join(", ");
+    return `<li>
+      <div style="flex:1">
+        <b>${o.custName}</b> <small style="color:var(--muted)">(${o.custLoc||'-'})</small>
+        <div style="font-size:.83rem;margin:3px 0">${itemsStr}</div>
+        <span class="badge ${o.payType==='Peşin'?'tamam':'vadeli'}">${o.payType}</span>
+        <b class="num" style="margin-left:6px">${fmt(o.total)}</b>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button type="button" class="btn sm blue" onclick="window.openFis('${o.id}')">🧾 Beyaz Fiş</button>
+        ${o.status === 'Bekliyor' ? `<button type="button" class="btn sm primary" onclick="window.deliverOrder('${o.id}')">✓ Teslim Et</button>` : '<span class="badge tamam">Teslim Edildi</span>'}
+      </div>
+    </li>`;
+  }).join("") || '<li>Bu filtrede sipariş bulunmuyor.</li>';
+}
+
+document.getElementById("filter-ord-status").addEventListener("change", renderOrders);
+
+// Sipariş Teslim Etme -> Stoktan Düşer, Peşinse Kasaya İşler
+window.deliverOrder = (oid) => {
+  const ord = state.orders.find(o => o.id === oid);
+  if(!ord) return;
+
+  // Stok düşümü
+  (ord.items || []).forEach(it => {
+    const st = state.stocks.find(s => s.id === it.sid || s.name === it.name);
+    if(st) update(ref(db, `stocks/${st.id}`), { qty: Math.max(0, Number(st.qty) - Number(it.qty)) });
+  });
+
+  // Peşin ise kasaya işle
+  if(ord.payType === "Peşin") {
+    push(ref(db, "cashTransactions"), {
+      at: Date.now(),
+      date: todayStr(),
+      desc: `Teslimat Peşin Tahsilat: ${ord.custName}`,
+      amount: ord.total,
+      type: "giren"
+    });
+  }
+
+  update(ref(db, `orders/${oid}`), { status: "Tamamlandı", deliveredAt: Date.now() });
+};
+
+// Beyaz Fiş Oluşturma & WhatsApp Paylaşım
+window.openFis = (oid) => {
+  const o = state.orders.find(x => x.id === oid);
+  if(!o) return;
+  const lines = (o.items || []).map(i => `- ${i.name}: ${i.qty} Adet x ${fmt(i.price)} = ${fmt(i.subtotal)}`).join("\n");
+  const text = `İNCİ TİCARET TESLİMAT FİŞİ\nTarih: ${new Date(o.at).toLocaleDateString("tr-TR")}\nMüşteri: ${o.custName} (${o.custLoc||'-'})\nÖdeme: ${o.payType}\n----------------------------\n${lines}\n----------------------------\nTOPLAM: ${fmt(o.total)}`;
+  
+  state.activeFisText = text;
+  document.getElementById("fis-content").innerText = text;
+  document.getElementById("fis-modal").hidden = false;
+};
+
+document.getElementById("close-fis-modal").addEventListener("click", () => document.getElementById("fis-modal").hidden = true);
+document.getElementById("share-wa-btn").addEventListener("click", () => {
+  window.open(`https://wa.me/?text=${encodeURIComponent(state.activeFisText)}`, "_blank");
+});
+document.getElementById("print-fis-pdf-btn").addEventListener("click", () => {
+  html2pdf().from(document.getElementById("fis-content")).save("InciTicaret_Teslimat_Fisi.pdf");
+});
+
+// =========================================================
+// 5. PEŞİN SATIŞ & KASA & GİDER KALEMLERİ
+// =========================================================
+document.getElementById("cs-prod").addEventListener("change", (e) => {
+  const opt = e.target.selectedOptions[0];
+  const qty = Number(document.getElementById("cs-qty").value) || 1;
+  if(opt && opt.dataset.price) document.getElementById("cs-amount").value = Number(opt.dataset.price) * qty;
+});
+
+document.getElementById("cs-btn").addEventListener("click", () => {
+  const custSel = document.getElementById("cs-cust");
+  const prodSel = document.getElementById("cs-prod");
+  const qty = Number(document.getElementById("cs-qty").value) || 1;
+  const amount = Number(document.getElementById("cs-amount").value);
+
+  if(!custSel.value) return alert("Lütfen müşteri seçin.");
+  if(!amount || amount <= 0) return alert("Geçerli bir tutar girin.");
+
+  const custName = custSel.selectedOptions[0].dataset.name;
+  const prodName = prodSel.value ? prodSel.selectedOptions[0].dataset.name : "Genel Ürün";
+
+  // Kasaya ekle
+  push(ref(db, "cashTransactions"), {
+    at: Date.now(),
+    date: todayStr(),
+    desc: `Peşin Satış: ${custName} - ${prodName} (${qty} Ad.)`,
+    amount,
+    type: "giren"
+  });
+
+  // Stoktan düş
+  if(prodSel.value) {
+    const st = state.stocks.find(s => s.id === prodSel.value);
+    if(st) update(ref(db, `stocks/${st.id}`), { qty: Math.max(0, Number(st.qty) - qty) });
+  }
+
+  document.getElementById("cs-amount").value = "";
+  alert("Peşin satış kasaya eklendi ve stoktan düşüldü.");
+});
+
+// Gider Kalemi Değişimi ("Diğer Giderler" açıklaması)
+document.getElementById("tx-expense-cat").addEventListener("change", (e) => {
+  document.getElementById("tx-other-note-wrap").hidden = e.target.value !== "Diğer Giderler";
+});
+
+document.getElementById("tx-gider-btn").addEventListener("click", () => {
+  const cat = document.getElementById("tx-expense-cat").value;
+  const note = document.getElementById("tx-other-note").value.trim();
+  const amount = Number(document.getElementById("tx-amount").value);
+
+  if(cat === "Diğer Giderler" && !note) return alert("Diğer Giderler için açıklama yazmak zorunludur!");
+  if(!amount || amount <= 0) return alert("Geçerli tutar girin.");
+
+  const desc = cat === "Diğer Giderler" ? `Gider (Diğer): ${note}` : `Gider: ${cat}`;
+  push(ref(db, "cashTransactions"), { at: Date.now(), date: todayStr(), desc, amount, type: "cikan" }).then(() => {
+    document.getElementById("tx-amount").value = "";
+    document.getElementById("tx-other-note").value = "";
+  });
+});
+
+function renderCash() {
+  const today = todayStr();
+  let giren = 0, cikan = 0;
+  const todayTx = state.cashTransactions.filter(t => t.date === today);
+
+  todayTx.forEach(t => {
+    if(t.type === "giren") giren += Number(t.amount);
+    else cikan += Number(t.amount);
+  });
+
+  document.getElementById("k-giren").textContent = fmt(giren);
+  document.getElementById("k-kalan").textContent = fmt(giren - cikan);
+  document.getElementById("tx-list").innerHTML = todayTx.map(t => `
+    <li>
+      <span><b>${t.desc}</b><br><small style="color:var(--muted)">${new Date(t.at).toLocaleTimeString("tr-TR")}</small></span>
+      <b class="num" style="color:${t.type==='giren'?'var(--green)':'var(--red)'}">${t.type==='giren'?'+':'-'}${fmt(t.amount)}</b>
+    </li>
+  `).join("") || '<li>Bugün henüz kasa hareketi yok.</li>';
+}
+
+// =========================================================
+// 6. ÜRÜN İADE / DEĞİŞİM (STOK ARTAR, KASA ETKİLENMEZ)
+// =========================================================
+document.getElementById("ret-btn").addEventListener("click", () => {
+  const custSel = document.getElementById("ret-cust");
+  const prodSel = document.getElementById("ret-prod");
+  const qty = Number(document.getElementById("ret-qty").value);
+  const note = document.getElementById("ret-note").value.trim();
+
+  if(!custSel.value || !prodSel.value || qty <= 0) return alert("Müşteri, ürün ve iade adedi seçin.");
+
+  const custName = custSel.selectedOptions[0].dataset.name;
+  const prodName = prodSel.selectedOptions[0].dataset.name;
+
+  // Stoğa geri ekle
+  const st = state.stocks.find(s => s.id === prodSel.value);
+  if(st) update(ref(db, `stocks/${st.id}`), { qty: Number(st.qty) + qty });
+
+  // İade kaydı oluştur (Kasaya kesinlikle ekleme yapmaz)
+  push(ref(db, "returns"), {
+    custId: custSel.value,
+    custName,
+    prodName,
+    qty,
+    note,
+    date: todayStr(),
+    month: currentMonthStr(),
+    at: Date.now()
+  }).then(() => {
+    document.getElementById("ret-note").value = "";
+    alert(`✓ ${qty} adet ${prodName} iade alındı ve stoklara geri eklendi. Kasa dengesi etkilenmedi.`);
+  });
+});
+
+// =========================================================
+// 7. AY AY SEKMELİ ARŞİV & MANUEL AY DEVİRLERİ
+// =========================================================
+document.querySelectorAll("#arch-month-tabs .cat-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("#arch-month-tabs .cat-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    state.selectedArchiveMonth = tab.dataset.month;
+    renderArchive();
+  });
+});
+
+document.getElementById("arch-cust").addEventListener("change", renderArchive);
+
+document.getElementById("save-devir-btn").addEventListener("click", () => {
+  const custId = document.getElementById("arch-cust").value;
+  const val = Number(document.getElementById("manual-devir-amount").value);
+  if(!custId) return alert("Önce müşteri seçin.");
+
+  set(ref(db, `devirler/${custId}_${state.selectedArchiveMonth}`), {
+    custId,
+    month: state.selectedArchiveMonth,
+    amount: val,
+    updatedAt: Date.now()
+  }).then(() => alert("Manuel ay devri kaydedildi."));
+});
+
+function renderArchive() {
+  const custId = document.getElementById("arch-cust").value;
+  if(!custId) return;
+
+  const devirKey = `${custId}_${state.selectedArchiveMonth}`;
+  const devirObj = state.devirler[devirKey];
+  document.getElementById("current-devir-info").textContent = devirObj
+    ? `Kayıtlı Manuel Ay Devri: ${fmt(devirObj.amount)}`
+    : "Bu ay için girilmiş manuel devir yok.";
+
+  const custOrders = state.orders.filter(o => o.custId === custId && o.month === state.selectedArchiveMonth);
+  document.getElementById("arch-list").innerHTML = custOrders.map(o => {
+    const itemsStr = (o.items || []).map(i => `${i.name} (${i.qty} Ad.)`).join(", ");
+    return `<li>
+      <div><b>${new Date(o.at).toLocaleDateString("tr-TR")}</b> • <span class="badge ${o.payType==='Peşin'?'tamam':'vadeli'}">${o.payType}</span><br><small>${itemsStr}</small></div>
+      <b class="num">${fmt(o.total)}</b>
+    </li>`;
+  }).join("") || '<li>Bu aya ait ürün çıkışı bulunmuyor.</li>';
+}
+
+// =========================================================
+// 8. KAPSAMLI Z-RAPORU ÖZETİ & PDF ÇIKTISI
+// =========================================================
+function renderZReport() {
+  const today = todayStr();
+  document.getElementById("zr-date-label").textContent = `Rapor Tarihi: ${new Date().toLocaleDateString("tr-TR")}`;
+
+  let pesin = 0, gider = 0, vadeli = 0, iadeQty = 0;
+
+  state.cashTransactions.filter(t => t.date === today).forEach(t => {
+    if(t.type === "giren") pesin += Number(t.amount);
+    else gider += Number(t.amount);
+  });
+
+  state.orders.filter(o => o.date === today && o.payType === "Vadeli").forEach(o => {
+    vadeli += Number(o.total);
+  });
+
+  state.returns.filter(r => r.date === today).forEach(r => {
+    iadeQty += Number(r.qty);
+  });
+
+  document.getElementById("zr-pesin").textContent = fmt(pesin);
+  document.getElementById("zr-vadeli").textContent = fmt(vadeli);
+  document.getElementById("zr-gider").textContent = fmt(gider);
+  document.getElementById("zr-iade-qty").textContent = `${iadeQty} Adet`;
+  document.getElementById("zr-net").textContent = fmt(pesin - gider);
+
+  document.getElementById("zr-detail-list").innerHTML = state.cashTransactions.filter(t => t.date === today).map(t => `
+    <li><span>${t.desc}</span><b style="color:${t.type==='giren'?'var(--green)':'var(--red)'}">${t.type==='giren'?'+':'-'}${fmt(t.amount)}</b></li>
+  `).join("") || '<li>Bugün işlem kaydı yok.</li>';
+}
+
+document.getElementById("pdf-btn").addEventListener("click", () => {
+  html2pdf().from(document.getElementById("z-rapor-print-area")).save(`InciTicaret_Z_Raporu_${todayStr()}.pdf`);
+});
+
+// =========================================================
+// 9. SAYFA YÖNLENDİRME (ROUTER)
+// =========================================================
+function route() {
+  const hash = location.hash.replace("#", "") || "siparisler";
+  ["siparisler", "pesin", "stok", "arsiv", "musteriler", "rapor"].forEach(id => {
+    const el = document.getElementById("v-" + id);
+    if(el) el.hidden = id !== hash;
+  });
+  document.querySelectorAll(".nav a").forEach(a => {
+    if(a.dataset.v === hash) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
